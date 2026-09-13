@@ -37,26 +37,30 @@ import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.SlateLight
 import com.example.ui.theme.SlateMedium
 
+import com.example.ui.i18n.SakshamStrings
+
 data class NavItem(
     val screen: Screen,
-    val title: String,
+    val titleKey: String,
+    val defaultTitle: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
     val testTag: String
 )
 
 val bottomNavItems = listOf(
-    NavItem(Screen.Home, "Home", Icons.Filled.Home, Icons.Outlined.Home, "nav_item_home"),
-    NavItem(Screen.Schemes, "Schemes", Icons.Filled.AccountBalance, Icons.Outlined.AccountBalance, "nav_item_schemes"),
-    NavItem(Screen.Calculator, "Calculator", Icons.Filled.Calculate, Icons.Outlined.Calculate, "nav_item_calculator"),
-    NavItem(Screen.Partners, "Partners", Icons.Filled.LocationOn, Icons.Outlined.LocationOn, "nav_item_partners"),
-    NavItem(Screen.Profile, "Profile", Icons.Filled.Person, Icons.Outlined.Person, "nav_item_profile")
+    NavItem(Screen.Home, "nav_home", "Home", Icons.Filled.Home, Icons.Outlined.Home, "nav_item_home"),
+    NavItem(Screen.Schemes, "nav_schemes", "Schemes", Icons.Filled.AccountBalance, Icons.Outlined.AccountBalance, "nav_item_schemes"),
+    NavItem(Screen.Calculator, "nav_calculator", "Calculator", Icons.Filled.Calculate, Icons.Outlined.Calculate, "nav_item_calculator"),
+    NavItem(Screen.Partners, "nav_partners", "Partners", Icons.Filled.LocationOn, Icons.Outlined.LocationOn, "nav_item_partners"),
+    NavItem(Screen.Profile, "nav_profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person, "nav_item_profile")
 )
 
 @Composable
 fun SakshamBottomBar(
     currentRoute: String,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    language: String = "English"
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -77,19 +81,20 @@ fun SakshamBottomBar(
             ) {
                 bottomNavItems.forEach { item ->
                     val isSelected = currentRoute == item.screen.route
+                    val localizedTitle = SakshamStrings.get(item.titleKey, language).ifBlank { item.defaultTitle }
                     NavigationBarItem(
                         selected = isSelected,
                         onClick = { onNavigate(item.screen) },
                         icon = {
                             Icon(
                                 imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = item.title,
+                                contentDescription = localizedTitle,
                                 modifier = Modifier.size(24.dp)
                             )
                         },
                         label = {
                             Text(
-                                text = item.title,
+                                text = localizedTitle,
                                 fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                             )

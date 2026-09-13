@@ -10,4 +10,6 @@ sealed class Screen(val route: String, val title: String) {
     object ActionPlan : Screen("action_plan", "AI Action Plan")
     object SchemeDetail : Screen("scheme_detail", "Scheme Details")
     object AIChat : Screen("ai_chat", "AI Assistant")
+    object Login : Screen("login", "Login")
+    object HelpContact : Screen("help_contact", "Help & Contact")
 }

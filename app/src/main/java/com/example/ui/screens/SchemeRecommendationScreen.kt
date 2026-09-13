@@ -25,8 +25,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -35,7 +33,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,10 +54,10 @@ import com.example.ui.theme.GovBlueContainer
 import com.example.ui.theme.GovBlueDark
 import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.GrowthGreenLight
 import com.example.ui.theme.SaffronAccent
-import com.example.ui.theme.SaffronLight
 import com.example.ui.theme.SlateBorder
 import com.example.ui.theme.SlateLight
 import com.example.ui.theme.SlateMedium
@@ -74,7 +71,9 @@ fun SchemeRecommendationScreen(
     savedSchemeIds: Set<String>,
     onSelectScheme: (GovernmentScheme) -> Unit,
     onToggleSave: (GovernmentScheme) -> Unit,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    language: String = "English",
+    isDarkMode: Boolean = false
 ) {
     var selectedCategory by remember { mutableStateOf("All Schemes") }
 
@@ -99,7 +98,9 @@ fun SchemeRecommendationScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = GovBluePrimary)
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDarkMode) Color(0xFF1E293B) else GovBluePrimary
+                )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -167,13 +168,15 @@ fun SchemeRecommendationScreen(
 
                     Button(
                         onClick = { onNavigate(Screen.ActionPlan) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isDarkMode) GovBluePrimaryDark else Color.White
+                        ),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
                             text = "View Step-by-Step AI Guidance Plan ➔",
-                            color = GovBluePrimary,
+                            color = if (isDarkMode) Color.Black else GovBluePrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
@@ -198,7 +201,7 @@ fun SchemeRecommendationScreen(
                             .background(if (isSelected) GovBluePrimary else MaterialTheme.colorScheme.surface)
                             .border(
                                 width = 1.dp,
-                                color = if (isSelected) GovBluePrimary else SlateBorder,
+                                color = if (isSelected) GovBluePrimary else if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder,
                                 shape = RoundedCornerShape(20.dp)
                             )
                             .clickable { selectedCategory = cat }
@@ -208,7 +211,7 @@ fun SchemeRecommendationScreen(
                             text = cat,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) Color.White else GovBlueDark
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -242,6 +245,7 @@ fun SchemeRecommendationScreen(
                         scheme = recommendedScheme,
                         isHighlighted = true,
                         isSaved = savedSchemeIds.contains(recommendedScheme.id),
+                        isDarkMode = isDarkMode,
                         onViewDetails = {
                             onSelectScheme(recommendedScheme)
                             onNavigate(Screen.SchemeDetail)
@@ -258,7 +262,7 @@ fun SchemeRecommendationScreen(
                 text = "All Available Schemes (${filteredSchemes.size})",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = GovBlueDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
             )
         }
@@ -269,6 +273,7 @@ fun SchemeRecommendationScreen(
                     scheme = scheme,
                     isHighlighted = false,
                     isSaved = savedSchemeIds.contains(scheme.id),
+                    isDarkMode = isDarkMode,
                     onViewDetails = {
                         onSelectScheme(scheme)
                         onNavigate(Screen.SchemeDetail)
@@ -285,18 +290,23 @@ fun SchemeCard(
     scheme: GovernmentScheme,
     isHighlighted: Boolean,
     isSaved: Boolean,
+    isDarkMode: Boolean = false,
     onViewDetails: () -> Unit,
     onToggleSave: () -> Unit
 ) {
+    val cardBg = if (isHighlighted) {
+        if (isDarkMode) Color(0xFF16253B) else Color(0xFFF8FAFF)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isHighlighted) Color(0xFFF8FAFF) else MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isHighlighted) 4.dp else 2.dp),
         border = androidx.compose.foundation.BorderStroke(
             width = if (isHighlighted) 2.dp else 1.dp,
-            color = if (isHighlighted) GovBluePrimary else SlateBorder
+            color = if (isHighlighted) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else (if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder)
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -314,7 +324,7 @@ fun SchemeCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(GrowthGreenLight)
+                            .background(if (isDarkMode) Color(0xFF132A1C) else GrowthGreenLight)
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
@@ -328,12 +338,12 @@ fun SchemeCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(GovBlueLight)
+                            .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueLight)
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
                             text = scheme.category,
-                            color = GovBluePrimary,
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -347,7 +357,7 @@ fun SchemeCard(
                     Icon(
                         imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                         contentDescription = "Save Scheme",
-                        tint = if (isSaved) GovBluePrimary else SlateLight
+                        tint = if (isSaved) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else SlateLight
                     )
                 }
             }
@@ -359,14 +369,14 @@ fun SchemeCard(
                 text = scheme.name,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = GovBlueDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 lineHeight = 20.sp
             )
 
             Text(
                 text = scheme.department,
                 fontSize = 11.sp,
-                color = SlateMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 15.sp,
                 modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
             )
@@ -376,21 +386,29 @@ fun SchemeCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (isHighlighted) Color.White else GovBlueLight.copy(alpha = 0.5f))
-                    .border(1.dp, SlateBorder, RoundedCornerShape(10.dp))
+                    .background(
+                        if (isDarkMode) Color(0xFF1E293B)
+                        else if (isHighlighted) Color.White
+                        else GovBlueLight.copy(alpha = 0.5f)
+                    )
+                    .border(
+                        1.dp,
+                        if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder,
+                        RoundedCornerShape(10.dp)
+                    )
                     .padding(10.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "Max Loan Amount", fontSize = 10.sp, color = SlateLight)
+                    Text(text = "Max Loan Amount", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         text = scheme.maxLoanAmountDisplay,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = GovBlueDark
+                        color = if (isDarkMode) GovBluePrimaryDark else GovBlueDark
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "Interest Rate", fontSize = 10.sp, color = SlateLight)
+                    Text(text = "Interest Rate", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         text = scheme.interestRateDisplay,
                         fontSize = 13.sp,
@@ -404,7 +422,12 @@ fun SchemeCard(
 
             // Suitable Purpose
             Row(verticalAlignment = Alignment.Top) {
-                Text(text = "Suitable for: ", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SlateMedium)
+                Text(
+                    text = "Suitable for: ",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Text(
                     text = scheme.suitablePurpose,
                     fontSize = 11.sp,
@@ -417,11 +440,16 @@ fun SchemeCard(
 
             // Basic Eligibility
             Row(verticalAlignment = Alignment.Top) {
-                Text(text = "Eligibility: ", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SlateMedium)
+                Text(
+                    text = "Eligibility: ",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Text(
                     text = scheme.eligibilitySummary,
                     fontSize = 11.sp,
-                    color = SlateMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 15.sp
                 )
             }
@@ -436,12 +464,17 @@ fun SchemeCard(
                     .testTag("view_details_button_${scheme.id}"),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isHighlighted) GovBluePrimary else GovBlueDark
+                    containerColor = if (isHighlighted) GovBluePrimary else if (isDarkMode) Color(0xFF2563EB) else GovBlueDark
                 )
             ) {
-                Text(text = "View Complete Details (विस्तृत जानकारी)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "View Complete Details (विस्तृत जानकारी)",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
                 Spacer(modifier = Modifier.width(6.dp))
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
             }
         }
     }

@@ -63,6 +63,7 @@ import com.example.ui.theme.GovBlueContainer
 import com.example.ui.theme.GovBlueDark
 import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.SlateBorder
 import com.example.ui.theme.SlateLight
@@ -82,7 +83,9 @@ fun AIChatScreen(
     messages: List<ChatMessage>,
     isAiThinking: Boolean,
     onSendMessage: (String) -> Unit,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    language: String = "English",
+    isDarkMode: Boolean = false
 ) {
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -103,7 +106,7 @@ fun AIChatScreen(
     ) {
         // AI Advisor Header Banner
         Surface(
-            color = GovBlueDark,
+            color = if (isDarkMode) Color(0xFF1E293B) else GovBlueDark,
             shadowElevation = 2.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -167,6 +170,7 @@ fun AIChatScreen(
             items(messages) { msg ->
                 ChatMessageItem(
                     message = msg,
+                    isDarkMode = isDarkMode,
                     onPromptClick = { prompt ->
                         onSendMessage(prompt)
                     },
@@ -185,13 +189,13 @@ fun AIChatScreen(
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp,
-                            color = GovBluePrimary
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Saksham AI is analyzing official database...",
                             fontSize = 12.sp,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -211,7 +215,11 @@ fun AIChatScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, GovBluePrimary.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                        .border(
+                            1.dp,
+                            if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else GovBluePrimary.copy(alpha = 0.3f),
+                            RoundedCornerShape(16.dp)
+                        )
                         .clickable { onSendMessage(prompt) }
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
@@ -219,7 +227,7 @@ fun AIChatScreen(
                         text = prompt,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = GovBluePrimary
+                        color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                     )
                 }
             }
@@ -282,7 +290,7 @@ fun AIChatScreen(
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = GovBluePrimary,
                         contentColor = Color.White,
-                        disabledContainerColor = SlateBorder,
+                        disabledContainerColor = if (isDarkMode) Color(0xFF334155) else SlateBorder,
                         disabledContentColor = SlateLight
                     ),
                     modifier = Modifier
@@ -303,6 +311,7 @@ fun AIChatScreen(
 @Composable
 fun ChatMessageItem(
     message: ChatMessage,
+    isDarkMode: Boolean = false,
     onPromptClick: (String) -> Unit,
     onViewActionPlan: () -> Unit
 ) {
@@ -344,7 +353,10 @@ fun ChatMessageItem(
                             bottomEnd = if (isUser) 4.dp else 16.dp
                         )
                     )
-                    .background(if (isUser) GovBluePrimary else MaterialTheme.colorScheme.surface)
+                    .background(
+                        if (isUser) GovBluePrimary
+                        else MaterialTheme.colorScheme.surface
+                    )
                     .border(
                         1.dp,
                         if (isUser) GovBluePrimary else MaterialTheme.colorScheme.outlineVariant,
@@ -373,7 +385,7 @@ fun ChatMessageItem(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(GovBlueLight)
+                                .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueLight)
                                 .clickable { onPromptClick(prompt) }
                                 .padding(horizontal = 10.dp, vertical = 6.dp)
                         ) {
@@ -381,7 +393,7 @@ fun ChatMessageItem(
                                 text = "➔ $prompt",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = GovBluePrimary
+                                color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                             )
                         }
                     }
@@ -395,13 +407,13 @@ fun ChatMessageItem(
                 modifier = Modifier
                     .size(30.dp)
                     .clip(CircleShape)
-                    .background(SlateBorder),
+                    .background(if (isDarkMode) Color(0xFF334155) else SlateBorder),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
-                    tint = GovBlueDark,
+                    tint = if (isDarkMode) Color.White else GovBlueDark,
                     modifier = Modifier.size(18.dp)
                 )
             }

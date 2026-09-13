@@ -264,18 +264,60 @@ class SakshamViewModel(application: Application) : AndroidViewModel(application)
         _isDarkMode.value = enabled
     }
 
-    fun updateProfileInfo(name: String, phone: String, state: String, district: String, category: String, income: String) {
+    fun updateProfileInfo(
+        name: String,
+        phone: String,
+        state: String,
+        district: String,
+        category: String,
+        income: String,
+        activeBusinessTarget: String = "",
+        photoUri: String? = null
+    ) {
         viewModelScope.launch {
-            val updated = UserProfileEntity(
-                id = 1,
+            val current = userProfile.value
+            val updated = (current ?: UserProfileEntity(id = 1)).copy(
                 fullName = name,
                 phone = phone,
                 state = state,
                 district = district,
                 socialCategory = category,
                 familyIncome = income,
-                selectedLanguage = _selectedLanguage.value
+                activeBusinessTarget = activeBusinessTarget.ifBlank { current?.activeBusinessTarget ?: "Dairy Farming & Milk Production" },
+                photoUri = photoUri ?: current?.photoUri,
+                selectedLanguage = _selectedLanguage.value,
+                isLoggedIn = true
             )
+            dao.updateUserProfile(updated)
+        }
+    }
+
+    fun updateProfilePhoto(uriString: String) {
+        viewModelScope.launch {
+            val current = userProfile.value
+            val updated = (current ?: UserProfileEntity(id = 1)).copy(photoUri = uriString)
+            dao.updateUserProfile(updated)
+        }
+    }
+
+    fun loginUser(name: String, phone: String, state: String = "Uttar Pradesh", district: String = "Varanasi") {
+        viewModelScope.launch {
+            val current = userProfile.value
+            val updated = (current ?: UserProfileEntity(id = 1)).copy(
+                fullName = name,
+                phone = phone,
+                state = state,
+                district = district,
+                isLoggedIn = true
+            )
+            dao.updateUserProfile(updated)
+        }
+    }
+
+    fun logoutUser() {
+        viewModelScope.launch {
+            val current = userProfile.value
+            val updated = (current ?: UserProfileEntity(id = 1)).copy(isLoggedIn = false)
             dao.updateUserProfile(updated)
         }
     }

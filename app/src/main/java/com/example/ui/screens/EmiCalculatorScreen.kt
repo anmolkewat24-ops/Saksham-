@@ -18,10 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.HourglassBottom
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -44,17 +41,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.GovBlueContainer
+import com.example.ui.i18n.SakshamStrings
 import com.example.ui.theme.GovBlueDark
-import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.GrowthGreenLight
 import com.example.ui.theme.SaffronAccent
 import com.example.ui.theme.SaffronLight
 import com.example.ui.theme.SlateBorder
-import com.example.ui.theme.SlateLight
-import com.example.ui.theme.SlateMedium
 import kotlin.math.pow
 
 @Composable
@@ -63,7 +58,9 @@ fun EmiCalculatorScreen(
     initialRate: Double,
     initialTenure: Int,
     initialMoratorium: Int,
-    onParametersChanged: (Double, Double, Int, Int) -> Unit
+    onParametersChanged: (Double, Double, Int, Int) -> Unit,
+    language: String = "English",
+    isDarkMode: Boolean = false
 ) {
     var loanAmount by remember { mutableDoubleStateOf(initialLoan) }
     var interestRate by remember { mutableDoubleStateOf(initialRate) }
@@ -84,6 +81,11 @@ fun EmiCalculatorScreen(
     val totalRepayment = monthlyEmi * activeMonths
     val totalInterest = (totalRepayment - loanAmount).coerceAtLeast(0.0)
 
+    val cardBorder = androidx.compose.foundation.BorderStroke(
+        1.dp,
+        if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+    )
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -96,7 +98,9 @@ fun EmiCalculatorScreen(
         item {
             Card(
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = GovBlueDark),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDarkMode) Color(0xFF1E293B) else GovBlueDark
+                ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -160,14 +164,14 @@ fun EmiCalculatorScreen(
             Card(
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
+                border = cardBorder
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
                         text = "Official Concessional Scheme Presets",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = GovBlueDark
+                        color = if (isDarkMode) GovBluePrimaryDark else GovBlueDark
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
@@ -239,7 +243,7 @@ fun EmiCalculatorScreen(
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                border = cardBorder,
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -248,12 +252,17 @@ fun EmiCalculatorScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Loan Amount (ऋण राशि):", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            "Loan Amount (ऋण राशि):",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Text(
                             "₹%,d".format(loanAmount.toLong()),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = GovBluePrimary
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                         )
                     }
                     Slider(
@@ -264,7 +273,10 @@ fun EmiCalculatorScreen(
                         },
                         valueRange = 25000f..5000000f,
                         steps = 99,
-                        colors = SliderDefaults.colors(thumbColor = GovBluePrimary, activeTrackColor = GovBluePrimary)
+                        colors = SliderDefaults.colors(
+                            thumbColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
+                            activeTrackColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -274,7 +286,12 @@ fun EmiCalculatorScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Interest Rate (% वार्षिक ब्याज):", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            "Interest Rate (% वार्षिक ब्याज):",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Text(
                             "%.1f%% p.a.".format(interestRate),
                             fontSize = 14.sp,
@@ -300,7 +317,12 @@ fun EmiCalculatorScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Repayment Tenure (पुनर्भुगतान अवधि):", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            "Repayment Tenure (पुनर्भुगतान अवधि):",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Text(
                             "$tenureYears Years (${tenureYears * 12} Months)",
                             fontSize = 14.sp,
@@ -316,7 +338,10 @@ fun EmiCalculatorScreen(
                         },
                         valueRange = 1f..10f,
                         steps = 8,
-                        colors = SliderDefaults.colors(thumbColor = GovBluePrimary, activeTrackColor = GovBluePrimary)
+                        colors = SliderDefaults.colors(
+                            thumbColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
+                            activeTrackColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -326,7 +351,12 @@ fun EmiCalculatorScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Moratorium Gestation (छूट अवधि):", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                        Text(
+                            "Moratorium Gestation (छूट अवधि):",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Text(
                             "$moratoriumMonths Months",
                             fontSize = 14.sp,
@@ -352,7 +382,9 @@ fun EmiCalculatorScreen(
         item {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SaffronLight.copy(alpha = 0.5f)),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDarkMode) Color(0xFF261D10) else SaffronLight.copy(alpha = 0.5f)
+                ),
                 border = androidx.compose.foundation.BorderStroke(1.dp, SaffronAccent.copy(alpha = 0.3f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -382,7 +414,7 @@ fun EmiCalculatorScreen(
                             text = "How the Moratorium Period Helps You",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = GovBlueDark
+                            color = if (isDarkMode) SaffronAccent else GovBlueDark
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(

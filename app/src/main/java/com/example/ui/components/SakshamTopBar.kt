@@ -173,20 +173,6 @@ fun SakshamTopBar(
                                 letterSpacing = 1.3.sp,
                                 fontSize = 18.sp
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(if (isDarkMode) Color(0xFF1E3A5F) else GovBlueContainer)
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = "GOV.IN",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = if (isDarkMode) Color.White else GovBluePrimary
-                                )
-                            }
                         }
                         Text(
                             text = "Government Loan & Business Advisor",
@@ -277,11 +263,14 @@ fun SakshamTopBar(
 
                 supportedLanguages.forEach { (nativeName, engName) ->
                     val isSelected = currentLanguage == nativeName || currentLanguage == engName
+                    val selectedItemBg = if (isSelected) {
+                        if (isDarkMode) Color(0xFF1E3A5F) else GovBlueContainer.copy(alpha = 0.6f)
+                    } else Color.Transparent
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) GovBlueContainer.copy(alpha = 0.5f) else Color.Transparent)
+                            .background(selectedItemBg)
                             .clickable {
                                 onLanguageSelected(nativeName)
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -300,7 +289,7 @@ fun SakshamTopBar(
                                 }
                             },
                             colors = RadioButtonDefaults.colors(
-                                selectedColor = GovBluePrimary
+                                selectedColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                             )
                         )
                         Spacer(modifier = Modifier.width(10.dp))
@@ -309,7 +298,9 @@ fun SakshamTopBar(
                                 text = nativeName,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
-                                color = if (isSelected) GovBluePrimary else MaterialTheme.colorScheme.onSurface
+                                color = if (isSelected) {
+                                    if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
+                                } else MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = engName,

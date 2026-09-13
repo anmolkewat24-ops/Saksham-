@@ -2,6 +2,10 @@ package com.example.ui.screens
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,30 +25,32 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,28 +62,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.data.local.SavedPartnerEntity
 import com.example.data.local.SavedPlanEntity
 import com.example.data.local.SavedSchemeEntity
 import com.example.data.local.UserProfileEntity
 import com.example.data.model.BusinessProfile
+import com.example.ui.i18n.SakshamStrings
 import com.example.ui.navigation.Screen
 import com.example.ui.theme.GovBlueContainer
 import com.example.ui.theme.GovBlueDark
 import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.GrowthGreenLight
 import com.example.ui.theme.SaffronAccent
 import com.example.ui.theme.SlateBorder
-import com.example.ui.theme.SlateLight
-import com.example.ui.theme.SlateMedium
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     userProfile: UserProfileEntity?,
@@ -87,14 +96,16 @@ fun ProfileScreen(
     savedPartners: List<SavedPartnerEntity>,
     onSelectSchemeById: (String) -> Unit,
     onNavigate: (Screen) -> Unit,
-    onUpdateProfile: (String, String, String, String, String, String) -> Unit,
+    onUpdateProfile: (name: String, phone: String, state: String, district: String, category: String, income: String, target: String) -> Unit,
+    onUpdatePhoto: (photoUri: String) -> Unit = {},
     onRemoveScheme: (String) -> Unit,
+    onLogout: () -> Unit = {},
+    language: String = "English",
     isDarkMode: Boolean = false,
     onToggleDarkMode: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var showEditDialog by remember { mutableStateOf(false) }
-    var notificationsEnabled by remember { mutableStateOf(true) }
 
     val name = userProfile?.fullName ?: "Ramesh Kumar"
     val phone = userProfile?.phone ?: "+91 98765 43210"
@@ -102,6 +113,18 @@ fun ProfileScreen(
     val district = userProfile?.district ?: "Varanasi"
     val category = userProfile?.socialCategory ?: "Scheduled Caste (SC)"
     val income = userProfile?.familyIncome ?: "₹1.50 - 3.00 Lakh"
+    val activeTarget = userProfile?.activeBusinessTarget ?: "Dairy Farming & Milk Production"
+    val photoUri = userProfile?.photoUri
+
+    // Zero-permission Android Photo Picker for profile photo
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            onUpdatePhoto(uri.toString())
+            Toast.makeText(context, "Profile photo updated successfully!", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -116,7 +139,11 @@ fun ProfileScreen(
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -124,19 +151,63 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Profile Avatar with Photo Picker Badge
                         Box(
-                            modifier = Modifier
-                                .size(60.dp)
-                                .clip(CircleShape)
-                                .background(GovBluePrimary),
-                            contentAlignment = Alignment.Center
+                            modifier = Modifier.size(68.dp),
+                            contentAlignment = Alignment.BottomEnd
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(36.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isDarkMode) Color(0xFF1E293B) else GovBluePrimary)
+                                    .border(2.dp, if (isDarkMode) GovBluePrimaryDark else Color.White, CircleShape)
+                                    .clickable {
+                                        photoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (!photoUri.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = photoUri,
+                                        contentDescription = "Profile Photo",
+                                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Default Avatar",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                }
+                            }
+
+                            // Camera / Edit Photo floating badge
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .background(GovBluePrimary)
+                                    .border(1.5.dp, Color.White, CircleShape)
+                                    .clickable {
+                                        photoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    }
+                                    .testTag("change_profile_photo_badge"),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CameraAlt,
+                                    contentDescription = "Change Photo",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(14.dp))
@@ -146,12 +217,13 @@ fun ProfileScreen(
                                 text = name,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 17.sp
                             )
                             Text(
                                 text = phone,
                                 fontSize = 12.sp,
-                                color = SlateMedium
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -160,7 +232,7 @@ fun ProfileScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(GrowthGreenLight)
+                                        .background(if (isDarkMode) Color(0xFF132A1C) else GrowthGreenLight)
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
@@ -175,19 +247,22 @@ fun ProfileScreen(
 
                         IconButton(
                             onClick = { showEditDialog = true },
-                            modifier = Modifier.testTag("edit_profile_button")
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueContainer.copy(alpha = 0.6f))
+                                .testTag("edit_profile_button")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = "Edit Profile",
-                                tint = GovBluePrimary
+                                tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Location & Income Pills
+                    // Location & Family Income Pills (Editable via Edit Dialog)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -195,21 +270,84 @@ fun ProfileScreen(
                         ProfileInfoBox(
                             label = "Location",
                             value = "$district, $state",
+                            isDarkMode = isDarkMode,
                             modifier = Modifier.weight(1f)
                         )
                         ProfileInfoBox(
-                            label = "Family Income",
+                            label = SakshamStrings.get("profile_income", language),
                             value = income,
+                            isDarkMode = isDarkMode,
                             modifier = Modifier.weight(1f)
                         )
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Active Business Target (Editable)
                     ProfileInfoBox(
-                        label = "Active Business Target",
-                        value = "${businessProfile.businessType} (₹%,d Loan Req.)".format(businessProfile.loanRequired),
+                        label = SakshamStrings.get("profile_business_target", language),
+                        value = activeTarget,
+                        isDarkMode = isDarkMode,
                         modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+
+        // Quick Action: Help, Support & Contact
+        item {
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate(Screen.HelpContact) }
+                    .testTag("profile_help_card")
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(if (isDarkMode) Color(0xFF261D10) else GovBlueContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SupportAgent,
+                            contentDescription = null,
+                            tint = SaffronAccent,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = SakshamStrings.get("help_faq_tab", language),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Guidelines, document checklist, FAQs & direct contact",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
@@ -220,7 +358,10 @@ fun ProfileScreen(
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -230,15 +371,15 @@ fun ProfileScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Saved Government Schemes (${savedSchemes.size})",
+                            text = "${SakshamStrings.get("saved_schemes", language)} (${savedSchemes.size})",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = GovBlueDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Icon(
                             imageVector = Icons.Default.Bookmark,
                             contentDescription = null,
-                            tint = GovBluePrimary,
+                            tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -247,7 +388,7 @@ fun ProfileScreen(
                         Text(
                             text = "No saved schemes yet. Bookmark schemes from the Schemes tab to review them later.",
                             fontSize = 12.sp,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 12.dp)
                         )
                     } else {
@@ -256,9 +397,9 @@ fun ProfileScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 6.dp)
+                                    .padding(vertical = 4.dp)
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(GovBlueLight)
+                                    .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueLight)
                                     .clickable {
                                         onSelectSchemeById(item.id)
                                         onNavigate(Screen.SchemeDetail)
@@ -272,12 +413,12 @@ fun ProfileScreen(
                                         text = item.name,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
-                                        color = GovBlueDark
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = "${item.category} • ${item.maxLoan} • ${item.interestRate}",
                                         fontSize = 11.sp,
-                                        color = SlateMedium
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 IconButton(
@@ -287,7 +428,7 @@ fun ProfileScreen(
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = "Remove",
-                                        tint = Color(0xFFDC2626),
+                                        tint = Color(0xFFEF4444),
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -298,217 +439,96 @@ fun ProfileScreen(
             }
         }
 
-        // Saved Action Plans
-        if (savedPlans.isNotEmpty()) {
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Saved AI Action Plans (${savedPlans.size})",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = GovBlueDark,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        savedPlans.forEach { plan ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFFF0FDF4))
-                                    .clickable { onNavigate(Screen.ActionPlan) }
-                                    .padding(12.dp)
-                            ) {
-                                Column {
-                                    Text(
-                                        text = plan.businessType,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp,
-                                        color = GrowthGreen
-                                    )
-                                    Text(
-                                        text = plan.summary,
-                                        fontSize = 11.sp,
-                                        color = SlateMedium,
-                                        maxLines = 2
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Preferences & Settings
+        // Official Links Section
         item {
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Preferences (प्राथमिकताएं)",
+                        text = "Official National Portals",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = GovBlueDark,
-                        modifier = Modifier.padding(bottom = 10.dp)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // Notifications Toggle
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(imageVector = Icons.Default.Notifications, contentDescription = null, tint = GovBluePrimary, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text("Scheme & Subsidy Notifications", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                                Text("Updates on new loan tranches & camps", fontSize = 11.sp, color = SlateLight)
-                            }
-                        }
-                        Switch(
-                            checked = notificationsEnabled,
-                            onCheckedChange = { notificationsEnabled = it },
-                            colors = SwitchDefaults.colors(checkedThumbColor = GovBluePrimary)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Theme Light/Dark Mode Toggle
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
-                                contentDescription = null,
-                                tint = if (isDarkMode) Color(0xFFFBBF24) else GovBluePrimary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = if (isDarkMode) "Dark Theme Enabled" else "Light Theme (Bright Mode)",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = if (isDarkMode) "Switch to crisp white high-contrast theme" else "Switch to comfortable night theme",
-                                    fontSize = 11.sp,
-                                    color = SlateLight
-                                )
-                            }
-                        }
-                        Switch(
-                            checked = isDarkMode,
-                            onCheckedChange = { onToggleDarkMode() },
-                            colors = SwitchDefaults.colors(checkedThumbColor = GovBluePrimary),
-                            modifier = Modifier.testTag("theme_switch_preferences")
-                        )
-                    }
+                    GovernmentLinkItem("NSFDC Official Website", "https://nsfdc.nic.in", isDarkMode)
+                    GovernmentLinkItem("Ministry of Social Justice & Empowerment", "https://socialjustice.gov.in", isDarkMode)
+                    GovernmentLinkItem("Jan Samarth National Portal", "https://www.jansamarth.in", isDarkMode)
+                    GovernmentLinkItem("Stand-Up India Scheme Portal", "https://www.standupmitra.in", isDarkMode)
+                    GovernmentLinkItem("Udyam MSME Registration Portal", "https://udyamregistration.gov.in", isDarkMode)
                 }
             }
         }
 
-        // Official Government Portals & Support Desk
+        // Account / Session Actions
+        item {
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("profile_logout_button"),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Sign Out / Switch User",
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp
+                )
+            }
+        }
+
+        // Legal Disclaimer Card
         item {
             Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDarkMode) Color(0xFF1E293B) else Color(0xFFF8FAFC)
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.Shield, contentDescription = null, tint = GovBluePrimary, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Official Government Links & Support",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = GovBlueDark
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    GovernmentLinkItem(
-                        title = "NSFDC National Portal (nsfdc.nic.in)",
-                        url = "https://nsfdc.nic.in"
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Shield,
+                        contentDescription = null,
+                        tint = SaffronAccent,
+                        modifier = Modifier.size(16.dp)
                     )
-                    GovernmentLinkItem(
-                        title = "Ministry of Social Justice & Empowerment",
-                        url = "https://socialjustice.gov.in"
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Saksham is a guidance platform and does not guarantee loan approval. Final eligibility, sanction, and disbursement are determined by the concerned government scheme and authorized channel partner.",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 16.sp
                     )
-                    GovernmentLinkItem(
-                        title = "Pradhan Mantri MUDRA Yojana (mudra.org.in)",
-                        url = "https://www.mudra.org.in"
-                    )
-                    GovernmentLinkItem(
-                        title = "Stand-Up India Portal (standupmitra.in)",
-                        url = "https://www.standupmitra.in"
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // National Helpline Card
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(GrowthGreenLight)
-                            .padding(12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column {
-                                Text("National Toll-Free Helpline:", fontSize = 11.sp, color = Color(0xFF14532D))
-                                Text("1800-11-2001 (Toll Free)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF14532D))
-                            }
-                            Button(
-                                onClick = {
-                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:1800112001"))
-                                    context.startActivity(intent)
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = GrowthGreen),
-                                shape = RoundedCornerShape(8.dp),
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                            ) {
-                                Icon(imageVector = Icons.Default.Call, contentDescription = null, modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Call", fontSize = 11.sp)
-                            }
-                        }
-                    }
                 }
             }
         }
     }
 
-    // Edit Profile Modal Dialog
+    // Comprehensive Edit Profile Modal Dialog with Editable Income & Active Business Target
     if (showEditDialog) {
         var editName by remember { mutableStateOf(name) }
         var editPhone by remember { mutableStateOf(phone) }
@@ -516,6 +536,16 @@ fun ProfileScreen(
         var editDistrict by remember { mutableStateOf(district) }
         var editCategory by remember { mutableStateOf(category) }
         var editIncome by remember { mutableStateOf(income) }
+        var editTarget by remember { mutableStateOf(activeTarget) }
+
+        var incomeDropdownExpanded by remember { mutableStateOf(false) }
+        val incomeOptions = listOf(
+            "Below ₹1.50 Lakh",
+            "₹1.50 - 3.00 Lakh",
+            "₹3.00 - 5.00 Lakh",
+            "₹5.00 - 8.00 Lakh",
+            "Above ₹8.00 Lakh"
+        )
 
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
@@ -523,44 +553,108 @@ fun ProfileScreen(
                 Text(
                     text = "Update User Profile",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     OutlinedTextField(
                         value = editName,
                         onValueChange = { editName = it },
                         label = { Text("Full Name") },
-                        modifier = Modifier.fillMaxWidth()
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("edit_name_field")
                     )
+
                     OutlinedTextField(
                         value = editPhone,
                         onValueChange = { editPhone = it },
                         label = { Text("Phone Number") },
-                        modifier = Modifier.fillMaxWidth()
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("edit_phone_field")
                     )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = editDistrict,
+                            onValueChange = { editDistrict = it },
+                            label = { Text("District") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = editState,
+                            onValueChange = { editState = it },
+                            label = { Text("State") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    // Editable Family Income
+                    ExposedDropdownMenuBox(
+                        expanded = incomeDropdownExpanded,
+                        onExpandedChange = { incomeDropdownExpanded = !incomeDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = editIncome,
+                            onValueChange = { editIncome = it },
+                            label = { Text("Family Income (Annual)") },
+                            readOnly = false,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = incomeDropdownExpanded) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor().testTag("edit_income_field")
+                        )
+                        ExposedDropdownMenu(
+                            expanded = incomeDropdownExpanded,
+                            onDismissRequest = { incomeDropdownExpanded = false }
+                        ) {
+                            incomeOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        editIncome = option
+                                        incomeDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Editable Active Business Target
                     OutlinedTextField(
-                        value = editDistrict,
-                        onValueChange = { editDistrict = it },
-                        label = { Text("District") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = editState,
-                        onValueChange = { editState = it },
-                        label = { Text("State") },
-                        modifier = Modifier.fillMaxWidth()
+                        value = editTarget,
+                        onValueChange = { editTarget = it },
+                        label = { Text("Active Business Target") },
+                        placeholder = { Text("e.g. Dairy Farm, Grocery Store, Apparel") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("edit_target_field")
                     )
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        onUpdateProfile(editName, editPhone, editState, editDistrict, editCategory, editIncome)
+                        onUpdateProfile(
+                            editName.ifBlank { name },
+                            editPhone.ifBlank { phone },
+                            editState.ifBlank { state },
+                            editDistrict.ifBlank { district },
+                            editCategory,
+                            editIncome.ifBlank { income },
+                            editTarget.ifBlank { activeTarget }
+                        )
                         showEditDialog = false
+                        Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = GovBluePrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = GovBluePrimary),
+                    modifier = Modifier.testTag("save_profile_button")
                 ) {
                     Text("Save Changes")
                 }
@@ -578,23 +672,33 @@ fun ProfileScreen(
 fun ProfileInfoBox(
     label: String,
     value: String,
+    isDarkMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(GovBlueLight)
+            .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueLight)
             .padding(horizontal = 10.dp, vertical = 8.dp)
     ) {
         Column {
-            Text(text = label, fontSize = 10.sp, color = SlateLight)
-            Text(text = value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = GovBlueDark)
+            Text(
+                text = label,
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isDarkMode) GovBluePrimaryDark else GovBlueDark
+            )
         }
     }
 }
 
 @Composable
-fun GovernmentLinkItem(title: String, url: String) {
+fun GovernmentLinkItem(title: String, url: String, isDarkMode: Boolean = false) {
     val context = LocalContext.current
     Row(
         modifier = Modifier
@@ -608,7 +712,17 @@ fun GovernmentLinkItem(title: String, url: String) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = title, fontSize = 12.sp, color = GovBluePrimary, fontWeight = FontWeight.Medium)
-        Icon(imageVector = Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, tint = GovBluePrimary, modifier = Modifier.size(14.dp))
+        Text(
+            text = title,
+            fontSize = 12.sp,
+            color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
+            fontWeight = FontWeight.Medium
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+            contentDescription = null,
+            tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
+            modifier = Modifier.size(14.dp)
+        )
     }
 }

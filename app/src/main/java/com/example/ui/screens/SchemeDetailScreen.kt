@@ -54,10 +54,10 @@ import com.example.ui.theme.GovBlueContainer
 import com.example.ui.theme.GovBlueDark
 import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.GrowthGreenLight
 import com.example.ui.theme.SaffronAccent
-import com.example.ui.theme.SaffronLight
 import com.example.ui.theme.SlateBorder
 import com.example.ui.theme.SlateLight
 import com.example.ui.theme.SlateMedium
@@ -67,17 +67,24 @@ fun SchemeDetailScreen(
     scheme: GovernmentScheme?,
     isSaved: Boolean,
     onToggleSave: () -> Unit,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    language: String = "English",
+    isDarkMode: Boolean = false
 ) {
     if (scheme == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Scheme details not found.")
+            Text("Scheme details not found.", color = MaterialTheme.colorScheme.onSurface)
         }
         return
     }
+
+    val cardBorder = androidx.compose.foundation.BorderStroke(
+        1.dp,
+        if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+    )
 
     LazyColumn(
         modifier = Modifier
@@ -93,7 +100,7 @@ fun SchemeDetailScreen(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
+                border = cardBorder,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
@@ -105,12 +112,12 @@ fun SchemeDetailScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(GovBlueContainer)
+                                .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueContainer)
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Text(
                                 text = scheme.category,
-                                color = GovBluePrimary,
+                                color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -123,7 +130,7 @@ fun SchemeDetailScreen(
                             Icon(
                                 imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                                 contentDescription = "Bookmark",
-                                tint = if (isSaved) GovBluePrimary else SlateLight
+                                tint = if (isSaved) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else SlateLight
                             )
                         }
                     }
@@ -134,7 +141,7 @@ fun SchemeDetailScreen(
                         text = scheme.name,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = GovBlueDark
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
@@ -143,7 +150,7 @@ fun SchemeDetailScreen(
                         Icon(
                             imageVector = Icons.Default.Shield,
                             contentDescription = null,
-                            tint = GovBluePrimary,
+                            tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -151,7 +158,7 @@ fun SchemeDetailScreen(
                             text = scheme.department,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 16.sp
                         )
                     }
@@ -170,7 +177,7 @@ fun SchemeDetailScreen(
                         icon = Icons.Default.AccountBalance,
                         label = "Maximum Loan Limit",
                         value = scheme.maxLoanAmountDisplay,
-                        accentColor = GovBluePrimary,
+                        accentColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                         modifier = Modifier.weight(1f)
                     )
                     DetailParameterBox(
@@ -197,7 +204,7 @@ fun SchemeDetailScreen(
                         icon = Icons.Default.Schedule,
                         label = "Repayment Tenure",
                         value = scheme.repaymentDisplay,
-                        accentColor = Color(0xFF7C3AED),
+                        accentColor = Color(0xFF818CF8),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -208,7 +215,9 @@ fun SchemeDetailScreen(
         item {
             Card(
                 shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = GrowthGreenLight),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDarkMode) Color(0xFF132A1C) else GrowthGreenLight
+                ),
                 border = androidx.compose.foundation.BorderStroke(1.dp, GrowthGreen.copy(alpha = 0.3f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -228,13 +237,13 @@ fun SchemeDetailScreen(
                             text = "Subsidy & Margin Money Support",
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
-                            color = Color(0xFF14532D)
+                            color = if (isDarkMode) GrowthGreenLight else Color(0xFF14532D)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = scheme.subsidyMargin,
                             fontSize = 12.sp,
-                            color = Color(0xFF14532D),
+                            color = if (isDarkMode) MaterialTheme.colorScheme.onSurface else Color(0xFF14532D),
                             lineHeight = 16.sp
                         )
                     }
@@ -256,7 +265,7 @@ fun SchemeDetailScreen(
                             modifier = Modifier
                                 .size(6.dp)
                                 .clip(CircleShape)
-                                .background(GovBluePrimary)
+                                .background(if (isDarkMode) GovBluePrimaryDark else GovBluePrimary)
                                 .padding(top = 6.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
@@ -317,8 +326,13 @@ fun SchemeDetailScreen(
         item {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = GovBlueLight),
-                border = androidx.compose.foundation.BorderStroke(1.dp, GovBluePrimary.copy(alpha = 0.3f)),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDarkMode) Color(0xFF1E293B) else GovBlueLight
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else GovBluePrimary.copy(alpha = 0.3f)
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
@@ -326,13 +340,13 @@ fun SchemeDetailScreen(
                         text = "Authorized Channel Partners & Banks",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
-                        color = GovBlueDark
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = scheme.channelPartnersInfo,
                         fontSize = 12.sp,
-                        color = SlateMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 16.sp
                     )
 
@@ -375,13 +389,13 @@ fun SchemeDetailScreen(
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = null,
-                            tint = GovBluePrimary,
+                            tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Ask AI Assistant About This Scheme",
-                            color = GovBluePrimary,
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
@@ -400,29 +414,21 @@ fun DetailParameterBox(
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    Box(
         modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+            .padding(12.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = accentColor,
-                modifier = Modifier.size(20.dp)
-            )
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Spacer(modifier = Modifier.height(6.dp))
-            Text(text = label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
-                text = value,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                lineHeight = 17.sp
-            )
+            Text(text = value, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -433,21 +439,21 @@ fun DetailSectionCard(
     content: @Composable () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 10.dp)
+                color = MaterialTheme.colorScheme.onSurface
             )
+            Spacer(modifier = Modifier.height(10.dp))
             content()
         }
     }
 }
+

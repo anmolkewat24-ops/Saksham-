@@ -35,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
@@ -62,6 +61,7 @@ import com.example.ui.theme.GovBlueContainer
 import com.example.ui.theme.GovBlueDark
 import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.GrowthGreenLight
 import com.example.ui.theme.SlateBorder
@@ -107,7 +107,9 @@ val employeeOptions = listOf(
 fun BusinessFormScreen(
     currentProfile: BusinessProfile,
     onSaveProfile: (BusinessProfile) -> Unit,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    language: String = "English",
+    isDarkMode: Boolean = false
 ) {
     var step by remember { mutableIntStateOf(1) }
     val totalSteps = 4
@@ -137,6 +139,11 @@ fun BusinessFormScreen(
     val loanRequired = (totalInvestment - ownCapital).coerceAtLeast(10000f).toLong()
 
     val isDairy = businessType.contains("Dairy", ignoreCase = true)
+
+    val cardBorder = androidx.compose.foundation.BorderStroke(
+        1.dp,
+        if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+    )
 
     fun submitAndProceed() {
         val updated = BusinessProfile(
@@ -175,7 +182,7 @@ fun BusinessFormScreen(
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
+                border = cardBorder,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -187,7 +194,7 @@ fun BusinessFormScreen(
                         Text(
                             text = "Step $step of $totalSteps",
                             fontWeight = FontWeight.Bold,
-                            color = GovBluePrimary,
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                             fontSize = 14.sp
                         )
                         Text(
@@ -198,7 +205,7 @@ fun BusinessFormScreen(
                                 else -> "Review & Match"
                             },
                             fontWeight = FontWeight.SemiBold,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 13.sp
                         )
                     }
@@ -211,8 +218,8 @@ fun BusinessFormScreen(
                             .fillMaxWidth()
                             .height(8.dp)
                             .clip(RoundedCornerShape(4.dp)),
-                        color = GovBluePrimary,
-                        trackColor = GovBlueLight
+                        color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
+                        trackColor = if (isDarkMode) Color(0xFF1E293B) else GovBlueLight
                     )
                 }
             }
@@ -224,19 +231,19 @@ fun BusinessFormScreen(
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
+                    border = cardBorder
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "What type of business do you want to start or grow?",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = GovBlueDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "आप किस प्रकार का व्यवसाय शुरू या विस्तारित करना चाहते हैं?",
                             fontSize = 12.sp,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
 
@@ -249,10 +256,14 @@ fun BusinessFormScreen(
                                     .clip(RoundedCornerShape(12.dp))
                                     .border(
                                         width = if (isSelected) 2.dp else 1.dp,
-                                        color = if (isSelected) GovBluePrimary else SlateBorder,
+                                        color = if (isSelected) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder,
                                         shape = RoundedCornerShape(12.dp)
                                     )
-                                    .background(if (isSelected) GovBlueLight else MaterialTheme.colorScheme.surface)
+                                    .background(
+                                        if (isSelected) {
+                                            if (isDarkMode) Color(0xFF1E293B) else GovBlueLight
+                                        } else MaterialTheme.colorScheme.surface
+                                    )
                                     .clickable { businessType = typeKey }
                                     .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -261,15 +272,15 @@ fun BusinessFormScreen(
                                     modifier = Modifier
                                         .size(20.dp)
                                         .clip(CircleShape)
-                                        .border(2.dp, if (isSelected) GovBluePrimary else SlateLight, CircleShape)
-                                        .background(if (isSelected) GovBluePrimary else Color.Transparent),
+                                        .border(2.dp, if (isSelected) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else SlateLight, CircleShape)
+                                        .background(if (isSelected) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else Color.Transparent),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (isSelected) {
                                         Icon(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = null,
-                                            tint = Color.White,
+                                            tint = if (isDarkMode) Color.Black else Color.White,
                                             modifier = Modifier.size(14.dp)
                                         )
                                     }
@@ -279,7 +290,7 @@ fun BusinessFormScreen(
                                     text = "$typeKey ($typeLabel)",
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 13.sp,
-                                    color = if (isSelected) GovBluePrimary else GovBlueDark
+                                    color = if (isSelected) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -291,7 +302,7 @@ fun BusinessFormScreen(
                             text = "Is this a new or existing business?",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = GovBlueDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Row(
                             modifier = Modifier
@@ -302,12 +313,14 @@ fun BusinessFormScreen(
                             SelectionChip(
                                 label = "🌱 New Startup (नई शुरुआत)",
                                 isSelected = !isExistingBusiness,
+                                isDarkMode = isDarkMode,
                                 modifier = Modifier.weight(1f),
                                 onClick = { isExistingBusiness = false }
                             )
                             SelectionChip(
                                 label = "📈 Existing Business (विस्तार)",
                                 isSelected = isExistingBusiness,
+                                isDarkMode = isDarkMode,
                                 modifier = Modifier.weight(1f),
                                 onClick = { isExistingBusiness = true }
                             )
@@ -320,7 +333,7 @@ fun BusinessFormScreen(
                             text = "Business Location Type",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = GovBlueDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Row(
                             modifier = Modifier
@@ -334,6 +347,7 @@ fun BusinessFormScreen(
                                 SelectionChip(
                                     label = loc,
                                     isSelected = isSelected,
+                                    isDarkMode = isDarkMode,
                                     modifier = Modifier.weight(1f),
                                     onClick = { locationType = key }
                                 )
@@ -350,7 +364,7 @@ fun BusinessFormScreen(
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
+                    border = cardBorder
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         if (isDairy) {
@@ -358,12 +372,12 @@ fun BusinessFormScreen(
                                 text = "Dairy Business Setup Plan 🐄",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "विशिष्ट डेयरी योजना: पशुओं की संख्या व बुनियादी ढांचा",
                                 fontSize = 12.sp,
-                                color = SlateMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(bottom = 14.dp)
                             )
 
@@ -372,7 +386,7 @@ fun BusinessFormScreen(
                                 text = "How many milch animals (cows/buffaloes) are you planning for?",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Row(
                                 modifier = Modifier
@@ -385,10 +399,10 @@ fun BusinessFormScreen(
                                     SelectionChip(
                                         label = "$count Animals",
                                         isSelected = isSelected,
+                                        isDarkMode = isDarkMode,
                                         modifier = Modifier.weight(1f),
                                         onClick = {
                                             dairyAnimalCount = count
-                                            // auto adjust recommended investment
                                             totalInvestment = (count * 125000f).coerceIn(100000f, 2500000f)
                                             ownCapital = (totalInvestment * 0.10f)
                                         }
@@ -403,7 +417,7 @@ fun BusinessFormScreen(
                                 text = "Available Land & Shed Status",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             listOf(
                                 "Own Land Available (खुद की जमीन/शेड)",
@@ -414,6 +428,7 @@ fun BusinessFormScreen(
                                 SelectionChip(
                                     label = option,
                                     isSelected = isSelected,
+                                    isDarkMode = isDarkMode,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp),
@@ -428,7 +443,7 @@ fun BusinessFormScreen(
                                 text = "Essential Infrastructure Checklist",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
 
                             Row(
@@ -439,8 +454,8 @@ fun BusinessFormScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Water & Electricity Available?", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                    Text("80-100 L per animal / day", fontSize = 11.sp, color = SlateLight)
+                                    Text("Water & Electricity Available?", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("80-100 L per animal / day", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Switch(
                                     checked = dairyWaterElectricity,
@@ -457,8 +472,8 @@ fun BusinessFormScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Milk Collection / Cooperative Nearby?", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                    Text("Within 3-5 km for easy daily sale", fontSize = 11.sp, color = SlateLight)
+                                    Text("Milk Collection / Cooperative Nearby?", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("Within 3-5 km for easy daily sale", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Switch(
                                     checked = dairyMilkCollectionCenter,
@@ -472,12 +487,12 @@ fun BusinessFormScreen(
                                 text = "Experience & Planned Employees",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "कार्य अनुभव एवं अनुमानित रोजगार सृजन",
                                 fontSize = 12.sp,
-                                color = SlateMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(bottom = 14.dp)
                             )
 
@@ -485,13 +500,14 @@ fun BusinessFormScreen(
                                 text = "Your Experience in this Business Field",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             experienceOptions.forEach { exp ->
                                 val isSelected = businessExperience == exp
                                 SelectionChip(
                                     label = exp,
                                     isSelected = isSelected,
+                                    isDarkMode = isDarkMode,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp),
@@ -505,7 +521,7 @@ fun BusinessFormScreen(
                                 text = "How many people do you plan to employ?",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             FlowRow(
                                 modifier = Modifier.fillMaxWidth(),
@@ -516,6 +532,7 @@ fun BusinessFormScreen(
                                     SelectionChip(
                                         label = emp,
                                         isSelected = isSelected,
+                                        isDarkMode = isDarkMode,
                                         onClick = { plannedEmployees = emp }
                                     )
                                 }
@@ -532,19 +549,19 @@ fun BusinessFormScreen(
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
+                    border = cardBorder
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "Investment & Capital Requirements",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = GovBlueDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "परियोजना लागत, स्वयं का निवेश एवं आवश्यक ऋण",
                             fontSize = 12.sp,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 14.dp)
                         )
 
@@ -553,12 +570,12 @@ fun BusinessFormScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Estimated Total Project Cost:", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Text("Estimated Total Project Cost:", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                             Text(
                                 "₹%,d".format(totalInvestment.toLong()),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = GovBluePrimary
+                                color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                             )
                         }
                         Slider(
@@ -571,7 +588,10 @@ fun BusinessFormScreen(
                             },
                             valueRange = 50000f..3000000f,
                             steps = 58,
-                            colors = SliderDefaults.colors(thumbColor = GovBluePrimary, activeTrackColor = GovBluePrimary)
+                            colors = SliderDefaults.colors(
+                                thumbColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
+                                activeTrackColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
+                            )
                         )
 
                         // Quick buttons for total investment
@@ -600,7 +620,7 @@ fun BusinessFormScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Your Own Investment (Capital):", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Text("Your Own Investment (Capital):", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                             Text(
                                 "₹%,d (%.0f%%)".format(ownCapital.toLong(), (ownCapital / totalInvestment * 100)),
                                 fontSize = 14.sp,
@@ -620,8 +640,12 @@ fun BusinessFormScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(GovBlueLight)
-                                .border(1.dp, GovBluePrimary.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueLight)
+                                .border(
+                                    1.dp,
+                                    if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else GovBluePrimary.copy(alpha = 0.3f),
+                                    RoundedCornerShape(12.dp)
+                                )
                                 .padding(12.dp)
                         ) {
                             Row(
@@ -634,19 +658,19 @@ fun BusinessFormScreen(
                                         text = "Government Loan Required:",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = GovBlueDark
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = "Eligible for up to 90-95% NSFDC funding",
                                         fontSize = 10.sp,
-                                        color = SlateMedium
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 Text(
                                     text = "₹%,d".format(loanRequired),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = GovBluePrimary
+                                    color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                                 )
                             }
                         }
@@ -658,13 +682,14 @@ fun BusinessFormScreen(
                             text = "Annual Family Income (वार्षिक पारिवारिक आय)",
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
-                            color = GovBlueDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         familyIncomeOptions.forEach { (incKey, incDesc) ->
                             val isSelected = annualFamilyIncome == incKey
                             SelectionChip(
                                 label = incDesc,
                                 isSelected = isSelected,
+                                isDarkMode = isDarkMode,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 3.dp),
@@ -682,14 +707,14 @@ fun BusinessFormScreen(
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
+                    border = cardBorder
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
                                 contentDescription = null,
-                                tint = GovBluePrimary,
+                                tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -697,13 +722,13 @@ fun BusinessFormScreen(
                                 text = "Ready for Scheme Matchmaking",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         Text(
                             text = "Review your details. Our AI will analyze your plan against official NSFDC & Government scheme rules.",
                             fontSize = 12.sp,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 4.dp, bottom = 14.dp)
                         )
 
@@ -726,7 +751,7 @@ fun BusinessFormScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(GrowthGreenLight)
+                                .background(if (isDarkMode) Color(0xFF132A1C) else GrowthGreenLight)
                                 .padding(12.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -741,7 +766,7 @@ fun BusinessFormScreen(
                                     text = "High eligibility detected for NSFDC Term Loan (6% interest, 12 months moratorium).",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = GrowthGreen
+                                    color = if (isDarkMode) GrowthGreenLight else GrowthGreen
                                 )
                             }
                         }
@@ -807,6 +832,7 @@ fun BusinessFormScreen(
 fun SelectionChip(
     label: String,
     isSelected: Boolean,
+    isDarkMode: Boolean = false,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -815,10 +841,14 @@ fun SelectionChip(
             .clip(RoundedCornerShape(10.dp))
             .border(
                 width = if (isSelected) 2.dp else 1.dp,
-                color = if (isSelected) GovBluePrimary else MaterialTheme.colorScheme.outlineVariant,
+                color = if (isSelected) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(10.dp)
             )
-            .background(if (isSelected) GovBlueContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surface)
+            .background(
+                if (isSelected) {
+                    if (isDarkMode) Color(0xFF1E293B) else GovBlueContainer.copy(alpha = 0.6f)
+                } else MaterialTheme.colorScheme.surface
+            )
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
@@ -827,7 +857,7 @@ fun SelectionChip(
             text = label,
             fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) GovBluePrimary else MaterialTheme.colorScheme.onSurface
+            color = if (isSelected) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else MaterialTheme.colorScheme.onSurface
         )
     }
 }

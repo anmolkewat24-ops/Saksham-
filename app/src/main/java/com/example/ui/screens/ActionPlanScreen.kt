@@ -52,6 +52,7 @@ import com.example.ui.theme.GovBlueContainer
 import com.example.ui.theme.GovBlueDark
 import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.GrowthGreenLight
 import com.example.ui.theme.SaffronAccent
@@ -63,9 +64,16 @@ import com.example.ui.theme.SlateMedium
 fun ActionPlanScreen(
     plan: BusinessActionPlan,
     onSavePlan: () -> Unit,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    language: String = "English",
+    isDarkMode: Boolean = false
 ) {
     var isPlanSaved by remember { mutableStateOf(false) }
+
+    val cardBorder = androidx.compose.foundation.BorderStroke(
+        1.dp,
+        if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+    )
 
     LazyColumn(
         modifier = Modifier
@@ -79,7 +87,9 @@ fun ActionPlanScreen(
         item {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = GovBlueDark),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDarkMode) Color(0xFF1E293B) else GovBlueDark
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
@@ -172,7 +182,8 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "1. Suitable Scale of Operation & Strategy",
-                hindiSubtitle = "उपयुक्त पैमाना एवं व्यवसाय रणनीति"
+                hindiSubtitle = "उपयुक्त पैमाना एवं व्यवसाय रणनीति",
+                isDarkMode = isDarkMode
             ) {
                 Text(
                     text = plan.suitableScale,
@@ -187,7 +198,8 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "2. Approximate Investment Areas",
-                hindiSubtitle = "अनुमानित निवेश एवं पूंजी आवंटन"
+                hindiSubtitle = "अनुमानित निवेश एवं पूंजी आवंटन",
+                isDarkMode = isDarkMode
             ) {
                 plan.investmentBreakdown.forEach { item ->
                     Row(
@@ -200,7 +212,7 @@ fun ActionPlanScreen(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(GovBluePrimary)
+                                .background(if (isDarkMode) GovBluePrimaryDark else GovBluePrimary)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
@@ -218,7 +230,8 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "3. Setup & Infrastructure Requirements",
-                hindiSubtitle = "आवश्यक बुनियादी ढांचा एवं उपकरण"
+                hindiSubtitle = "आवश्यक बुनियादी ढांचा एवं उपकरण",
+                isDarkMode = isDarkMode
             ) {
                 plan.setupAndInfrastructure.forEach { infra ->
                     Row(
@@ -251,13 +264,14 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "4. Expenses & Revenue Estimation",
-                hindiSubtitle = "अनुमानित मासिक खर्च, आय एवं लाभ"
+                hindiSubtitle = "अनुमानित मासिक खर्च, आय एवं लाभ",
+                isDarkMode = isDarkMode
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
-                        .background(GrowthGreenLight)
+                        .background(if (isDarkMode) Color(0xFF132A1C) else GrowthGreenLight)
                         .padding(12.dp)
                 ) {
                     Text(
@@ -265,7 +279,7 @@ fun ActionPlanScreen(
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF14532D)
+                        color = if (isDarkMode) GrowthGreenLight else Color(0xFF14532D)
                     )
                 }
             }
@@ -275,7 +289,8 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "5. How to Plan for Growth",
-                hindiSubtitle = "व्यवसाय विस्तार एवं चरणबद्ध वृद्धि"
+                hindiSubtitle = "व्यवसाय विस्तार एवं चरणबद्ध वृद्धि",
+                isDarkMode = isDarkMode
             ) {
                 plan.growthPlan.forEach { phase ->
                     Row(
@@ -287,7 +302,7 @@ fun ActionPlanScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                             contentDescription = null,
-                            tint = GovBluePrimary,
+                            tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                             modifier = Modifier
                                 .size(16.dp)
                                 .padding(top = 2.dp)
@@ -308,14 +323,19 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "6. Recommended Financing & Loan Scheme",
-                hindiSubtitle = "अनुशंसित सरकारी ऋण योजना"
+                hindiSubtitle = "अनुशंसित सरकारी ऋण योजना",
+                isDarkMode = isDarkMode
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
-                        .background(GovBlueLight)
-                        .border(1.dp, GovBluePrimary.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+                        .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueLight)
+                        .border(
+                            1.dp,
+                            if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else GovBluePrimary.copy(alpha = 0.2f),
+                            RoundedCornerShape(10.dp)
+                        )
                         .padding(12.dp)
                 ) {
                     Column {
@@ -323,14 +343,14 @@ fun ActionPlanScreen(
                             text = plan.recommendedFinancing,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = GovBluePrimary
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = plan.estimatedLoanNeeded,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = SlateMedium
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -341,7 +361,8 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "7. Required Documents & Checklist",
-                hindiSubtitle = "आवेदन हेतु आवश्यक आधिकारिक दस्तावेज"
+                hindiSubtitle = "आवेदन हेतु आवश्यक आधिकारिक दस्तावेज",
+                isDarkMode = isDarkMode
             ) {
                 plan.requiredDocuments.forEach { doc ->
                     Row(
@@ -371,7 +392,8 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "8. Step-by-Step Action Plan to Apply",
-                hindiSubtitle = "अगला कदम: ऋण प्राप्ति की चरणबद्ध प्रक्रिया"
+                hindiSubtitle = "अगला कदम: ऋण प्राप्ति की चरणबद्ध प्रक्रिया",
+                isDarkMode = isDarkMode
             ) {
                 plan.stepByStepSteps.forEach { step ->
                     Row(
@@ -384,7 +406,7 @@ fun ActionPlanScreen(
                             text = "•",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = GovBluePrimary,
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                             modifier = Modifier.padding(end = 8.dp)
                         )
                         Text(
@@ -402,7 +424,8 @@ fun ActionPlanScreen(
         item {
             ActionModuleCard(
                 title = "9. Authorized Channel Partner",
-                hindiSubtitle = "निकटतम अधिकृत चैनेलाइजिंग एजेंसी व बैंक"
+                hindiSubtitle = "निकटतम अधिकृत चैनेलाइजिंग एजेंसी व बैंक",
+                isDarkMode = isDarkMode
             ) {
                 Text(
                     text = plan.partnerRecommendation,
@@ -447,12 +470,16 @@ fun ActionPlanScreen(
 fun ActionModuleCard(
     title: String,
     hindiSubtitle: String,
+    isDarkMode: Boolean = false,
     content: @Composable () -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+        ),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -460,12 +487,12 @@ fun ActionModuleCard(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = GovBlueDark
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = hindiSubtitle,
                 fontSize = 11.sp,
-                color = SlateMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 

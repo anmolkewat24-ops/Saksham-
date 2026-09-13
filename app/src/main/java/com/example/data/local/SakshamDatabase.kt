@@ -53,7 +53,10 @@ data class UserProfileEntity(
     val district: String = "Varanasi",
     val socialCategory: String = "Scheduled Caste (SC)",
     val familyIncome: String = "₹1.50 - 3.00 Lakh",
-    val selectedLanguage: String = "English"
+    val selectedLanguage: String = "English",
+    val photoUri: String? = null,
+    val activeBusinessTarget: String = "Dairy Farm (4 Cattle)",
+    val isLoggedIn: Boolean = false
 )
 
 @Dao
@@ -109,7 +112,7 @@ interface SakshamDao {
         SavedPartnerEntity::class,
         UserProfileEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class SakshamDatabase : RoomDatabase() {
@@ -125,7 +128,9 @@ abstract class SakshamDatabase : RoomDatabase() {
                     context.applicationContext,
                     SakshamDatabase::class.java,
                     "saksham_gov_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

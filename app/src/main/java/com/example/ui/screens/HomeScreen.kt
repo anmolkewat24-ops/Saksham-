@@ -1,7 +1,6 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Calculate
@@ -29,6 +27,7 @@ import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -45,23 +44,25 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.i18n.SakshamStrings
 import com.example.ui.navigation.Screen
 import com.example.ui.theme.GovBlueContainer
 import com.example.ui.theme.GovBlueDark
 import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.GrowthGreenLight
 import com.example.ui.theme.SaffronAccent
 import com.example.ui.theme.SaffronLight
 import com.example.ui.theme.SlateBorder
-import com.example.ui.theme.SlateLight
-import com.example.ui.theme.SlateMedium
 
 @Composable
 fun HomeScreen(
     onNavigate: (Screen) -> Unit,
-    onSelectSchemeCategory: (String) -> Unit
+    onSelectSchemeCategory: (String) -> Unit,
+    language: String = "English",
+    isDarkMode: Boolean = false
 ) {
     LazyColumn(
         modifier = Modifier
@@ -77,10 +78,11 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(
-                                GovBluePrimary,
-                                GovBlueDark
-                            )
+                            colors = if (isDarkMode) {
+                                listOf(Color(0xFF0F172A), Color(0xFF1E293B))
+                            } else {
+                                listOf(GovBluePrimary, GovBlueDark)
+                            }
                         )
                     )
                     .padding(horizontal = 20.dp, vertical = 22.dp)
@@ -101,7 +103,7 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Official National Empowerment Portal",
+                            text = SakshamStrings.get("official_portal", language),
                             color = Color.White,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -111,7 +113,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "Welcome to Saksham\nसक्षम में आपका स्वागत है",
+                        text = SakshamStrings.get("welcome_hero", language),
                         color = Color.White,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
@@ -121,7 +123,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Empowering entrepreneurs with verified government loan schemes, concessional interest rates, and AI business guidance.",
+                        text = SakshamStrings.get("welcome_hero_sub", language),
                         color = Color.White.copy(alpha = 0.85f),
                         fontSize = 13.sp,
                         lineHeight = 18.sp
@@ -135,18 +137,18 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         QuickMetricPill(
-                            label = "Lowest Interest",
-                            value = "From 3.5% p.a.",
+                            label = SakshamStrings.get("metric_interest_label", language),
+                            value = SakshamStrings.get("metric_interest", language),
                             modifier = Modifier.weight(1f)
                         )
                         QuickMetricPill(
-                            label = "Max Loan Limit",
-                            value = "Up to ₹50 Lakh",
+                            label = SakshamStrings.get("metric_limit_label", language),
+                            value = SakshamStrings.get("metric_limit", language),
                             modifier = Modifier.weight(1f)
                         )
                         QuickMetricPill(
-                            label = "Gestation Period",
-                            value = "12 Mo. Moratorium",
+                            label = SakshamStrings.get("metric_moratorium_label", language),
+                            value = SakshamStrings.get("metric_moratorium", language),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -158,21 +160,21 @@ fun HomeScreen(
         item {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
                 Text(
-                    text = "Services & Features / मुख्य सेवाएं",
+                    text = SakshamStrings.get("services_heading", language),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 17.sp
                 )
                 Text(
-                    text = "Touch any card below to start your application or guidance",
+                    text = SakshamStrings.get("services_sub", language),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        // Main 6 Large Options Cards
+        // Main 7 Options Cards
         item {
             Column(
                 modifier = Modifier
@@ -182,28 +184,30 @@ fun HomeScreen(
             ) {
                 // 1. Find Best Scheme (Primary Feature)
                 MainOptionCard(
-                    title = "Find Best Scheme",
-                    hindiSubtitle = "सर्वश्रेष्ठ योजना खोजें (पात्रता जांच)",
-                    description = "Answer a few simple questions about your business idea and get high-match government schemes.",
+                    title = SakshamStrings.get("card_find_scheme_title", language),
+                    hindiSubtitle = SakshamStrings.get("card_find_scheme_sub", language),
+                    description = SakshamStrings.get("card_find_scheme_desc", language),
                     icon = Icons.Default.FindInPage,
                     badgeText = "Most Popular",
                     badgeColor = GrowthGreen,
-                    containerColor = GovBlueLight,
-                    accentColor = GovBluePrimary,
+                    containerColor = if (isDarkMode) Color(0xFF132A1C) else GovBlueLight,
+                    accentColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
+                    isDarkMode = isDarkMode,
                     testTag = "home_card_find_best_scheme",
                     onClick = { onNavigate(Screen.BusinessForm) }
                 )
 
                 // 2. Education Loan
                 MainOptionCard(
-                    title = "Education Loan",
-                    hindiSubtitle = "शिक्षा ऋण योजनाएं (उच्च शिक्षा एवं कौशल)",
-                    description = "Concessional loans up to ₹20L in India & ₹30L abroad at 4% interest (3.5% for women students).",
+                    title = SakshamStrings.get("card_education_title", language),
+                    hindiSubtitle = SakshamStrings.get("card_education_sub", language),
+                    description = SakshamStrings.get("card_education_desc", language),
                     icon = Icons.Default.School,
                     badgeText = "3.5% - 4% Interest",
                     badgeColor = GovBluePrimary,
-                    containerColor = Color(0xFFF0FDF4),
+                    containerColor = if (isDarkMode) Color(0xFF132A1C) else Color(0xFFF0FDF4),
                     accentColor = GrowthGreen,
+                    isDarkMode = isDarkMode,
                     testTag = "home_card_education_loan",
                     onClick = {
                         onSelectSchemeCategory("Education")
@@ -213,14 +217,15 @@ fun HomeScreen(
 
                 // 3. Business Loan
                 MainOptionCard(
-                    title = "Business Loan",
-                    hindiSubtitle = "व्यवसाय ऋण (टर्म लोन, सूक्ष्म वित्त एवं MSME)",
-                    description = "NSFDC Term Loans, Mahila Samriddhi, Micro Credit, and PMEGP capital subsidy schemes up to ₹50 Lakh.",
+                    title = SakshamStrings.get("card_business_title", language),
+                    hindiSubtitle = SakshamStrings.get("card_business_sub", language),
+                    description = SakshamStrings.get("card_business_desc", language),
                     icon = Icons.Default.Business,
                     badgeText = "Up to ₹50 Lakh",
                     badgeColor = SaffronAccent,
-                    containerColor = SaffronLight.copy(alpha = 0.4f),
+                    containerColor = if (isDarkMode) Color(0xFF261D10) else SaffronLight.copy(alpha = 0.4f),
                     accentColor = SaffronAccent,
+                    isDarkMode = isDarkMode,
                     testTag = "home_card_business_loan",
                     onClick = {
                         onSelectSchemeCategory("Business")
@@ -230,44 +235,62 @@ fun HomeScreen(
 
                 // 4. EMI Calculator
                 MainOptionCard(
-                    title = "EMI Calculator",
-                    hindiSubtitle = "ईएमआई एवं मोरेटोरियम कैलकुलेटर",
-                    description = "Calculate exact monthly installments, moratorium benefits, and total savings under concessional interest.",
+                    title = SakshamStrings.get("card_calculator_title", language),
+                    hindiSubtitle = SakshamStrings.get("card_calculator_sub", language),
+                    description = SakshamStrings.get("card_calculator_desc", language),
                     icon = Icons.Default.Calculate,
                     badgeText = "Moratorium Friendly",
                     badgeColor = GovBluePrimary,
-                    containerColor = Color(0xFFFAF5FF),
-                    accentColor = Color(0xFF7C3AED),
+                    containerColor = if (isDarkMode) Color(0xFF1F1B2E) else Color(0xFFFAF5FF),
+                    accentColor = Color(0xFF8B5CF6),
+                    isDarkMode = isDarkMode,
                     testTag = "home_card_emi_calculator",
                     onClick = { onNavigate(Screen.Calculator) }
                 )
 
                 // 5. Find Nearest Partner
                 MainOptionCard(
-                    title = "Find Nearest Partner",
-                    hindiSubtitle = "निकटतम अधिकृत बैंक एवं चैनल पार्टनर खोजें",
-                    description = "Locate nearby State Channelising Agencies (SCA), Regional Rural Banks, and nationalized bank branches.",
+                    title = SakshamStrings.get("card_partners_title", language),
+                    hindiSubtitle = SakshamStrings.get("card_partners_sub", language),
+                    description = SakshamStrings.get("card_partners_desc", language),
                     icon = Icons.Default.LocationOn,
                     badgeText = "Map & Directions",
                     badgeColor = GrowthGreen,
-                    containerColor = Color(0xFFF0FDF4),
+                    containerColor = if (isDarkMode) Color(0xFF132A1C) else Color(0xFFF0FDF4),
                     accentColor = GrowthGreen,
+                    isDarkMode = isDarkMode,
                     testTag = "home_card_find_nearest_partner",
                     onClick = { onNavigate(Screen.Partners) }
                 )
 
                 // 6. AI Assistant
                 MainOptionCard(
-                    title = "AI Business Assistant",
-                    hindiSubtitle = "सक्षम साथी AI - व्यक्तिगत मार्गदर्शन",
-                    description = "Chat with our intelligent advisor for step-by-step business planning, document checklists, and scheme queries.",
+                    title = SakshamStrings.get("card_ai_title", language),
+                    hindiSubtitle = SakshamStrings.get("card_ai_sub", language),
+                    description = SakshamStrings.get("card_ai_desc", language),
                     icon = Icons.Default.AutoAwesome,
                     badgeText = "AI Powered 24/7",
                     badgeColor = GovBluePrimary,
-                    containerColor = GovBlueContainer.copy(alpha = 0.5f),
-                    accentColor = GovBluePrimary,
+                    containerColor = if (isDarkMode) Color(0xFF1E293B) else GovBlueContainer.copy(alpha = 0.5f),
+                    accentColor = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
+                    isDarkMode = isDarkMode,
                     testTag = "home_card_ai_assistant",
                     onClick = { onNavigate(Screen.AIChat) }
+                )
+
+                // 7. Help & Contact Support
+                MainOptionCard(
+                    title = SakshamStrings.get("card_help_title", language),
+                    hindiSubtitle = SakshamStrings.get("card_help_sub", language),
+                    description = SakshamStrings.get("card_help_desc", language),
+                    icon = Icons.Default.SupportAgent,
+                    badgeText = "Help & Helpline",
+                    badgeColor = SaffronAccent,
+                    containerColor = if (isDarkMode) Color(0xFF261D10) else SaffronLight.copy(alpha = 0.35f),
+                    accentColor = SaffronAccent,
+                    isDarkMode = isDarkMode,
+                    testTag = "home_card_help_contact",
+                    onClick = { onNavigate(Screen.HelpContact) }
                 )
             }
         }
@@ -280,7 +303,10 @@ fun HomeScreen(
                     .padding(horizontal = 16.dp, vertical = 18.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder)
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+                )
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -290,7 +316,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(GrowthGreenLight),
+                            .background(if (isDarkMode) Color(0xFF132A1C) else GrowthGreenLight),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -305,15 +331,15 @@ fun HomeScreen(
 
                     Column {
                         Text(
-                            text = "Verified Government Information",
+                            text = SakshamStrings.get("trust_title", language),
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = GovBlueDark
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBlueDark
                         )
                         Text(
-                            text = "Data authoritative from NSFDC & Department of Social Justice & Empowerment, Government of India.",
+                            text = SakshamStrings.get("trust_desc", language),
                             fontSize = 12.sp,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 16.sp
                         )
                     }
@@ -362,6 +388,7 @@ private fun MainOptionCard(
     badgeColor: Color,
     containerColor: Color,
     accentColor: Color,
+    isDarkMode: Boolean,
     testTag: String,
     onClick: () -> Unit
 ) {
@@ -373,7 +400,10 @@ private fun MainOptionCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp, hoveredElevation = 4.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -440,7 +470,7 @@ private fun MainOptionCard(
             Text(
                 text = description,
                 fontSize = 12.5.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 18.sp
             )
 

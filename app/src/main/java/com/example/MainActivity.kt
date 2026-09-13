@@ -28,7 +28,9 @@ import com.example.ui.screens.ActionPlanScreen
 import com.example.ui.screens.BusinessFormScreen
 import com.example.ui.screens.ChannelPartnerLocatorScreen
 import com.example.ui.screens.EmiCalculatorScreen
+import com.example.ui.screens.HelpContactScreen
 import com.example.ui.screens.HomeScreen
+import com.example.ui.screens.LoginScreen
 import com.example.ui.screens.ProfileScreen
 import com.example.ui.screens.SchemeDetailScreen
 import com.example.ui.screens.SchemeRecommendationScreen
@@ -71,6 +73,19 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
     val emiTenure by viewModel.emiTenureYears.collectAsState()
     val emiMoratorium by viewModel.emiMoratoriumMonths.collectAsState()
 
+    // Check if user is logged in
+    val isLoggedIn = userProfile?.isLoggedIn ?: true
+
+    if (!isLoggedIn) {
+        LoginScreen(
+            onLoginSuccess = { name, phone ->
+                viewModel.loginUser(name = name, phone = phone)
+            },
+            isDarkMode = isDarkMode
+        )
+        return
+    }
+
     val rootTabs = listOf(
         Screen.Home.route,
         Screen.Schemes.route,
@@ -90,6 +105,7 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
         Screen.ActionPlan.route -> "AI Business Action Plan"
         Screen.SchemeDetail.route -> selectedScheme?.shortName ?: "Scheme Details"
         Screen.AIChat.route -> "Saksham Saathi AI"
+        Screen.HelpContact.route -> "Help, FAQs & Support"
         else -> null
     }
 
@@ -119,7 +135,8 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                             restoreState = true
                         }
                     }
-                }
+                },
+                language = selectedLanguage
             )
         }
     ) { innerPadding ->
@@ -133,7 +150,9 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                     onNavigate = { screen -> navController.navigate(screen.route) },
                     onSelectSchemeCategory = { _ ->
                         navController.navigate(Screen.Schemes.route)
-                    }
+                    },
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
                 )
             }
 
@@ -147,7 +166,9 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                     savedSchemeIds = savedIds,
                     onSelectScheme = { scheme -> viewModel.selectScheme(scheme) },
                     onToggleSave = { scheme -> viewModel.toggleSaveScheme(scheme) },
-                    onNavigate = { screen -> navController.navigate(screen.route) }
+                    onNavigate = { screen -> navController.navigate(screen.route) },
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
                 )
             }
 
@@ -159,7 +180,9 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                     initialMoratorium = emiMoratorium,
                     onParametersChanged = { l, r, t, m ->
                         viewModel.updateEmiParameters(l, r, t, m)
-                    }
+                    },
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
                 )
             }
 
@@ -170,7 +193,9 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                 ChannelPartnerLocatorScreen(
                     partners = partners,
                     savedPartnerIds = savedIds,
-                    onToggleSave = { partner -> viewModel.toggleSavePartner(partner) }
+                    onToggleSave = { partner -> viewModel.toggleSavePartner(partner) },
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
                 )
             }
 
@@ -183,13 +208,20 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                     savedPartners = savedPartners,
                     onSelectSchemeById = { id -> viewModel.selectSchemeById(id) },
                     onNavigate = { screen -> navController.navigate(screen.route) },
-                    onUpdateProfile = { name, phone, state, district, category, income ->
-                        viewModel.updateProfileInfo(name, phone, state, district, category, income)
+                    onUpdateProfile = { name, phone, state, district, category, income, target ->
+                        viewModel.updateProfileInfo(name, phone, state, district, category, income, target)
+                    },
+                    onUpdatePhoto = { photoUri ->
+                        viewModel.updateProfilePhoto(photoUri)
                     },
                     onRemoveScheme = { id ->
                         val scheme = GovernmentDataRepository.getSchemeById(id)
                         if (scheme != null) viewModel.toggleSaveScheme(scheme)
                     },
+                    onLogout = {
+                        viewModel.logoutUser()
+                    },
+                    language = selectedLanguage,
                     isDarkMode = isDarkMode,
                     onToggleDarkMode = { viewModel.toggleTheme() }
                 )
@@ -199,7 +231,9 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                 BusinessFormScreen(
                     currentProfile = businessProfile,
                     onSaveProfile = { profile -> viewModel.updateBusinessProfile(profile) },
-                    onNavigate = { screen -> navController.navigate(screen.route) }
+                    onNavigate = { screen -> navController.navigate(screen.route) },
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
                 )
             }
 
@@ -207,7 +241,9 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                 ActionPlanScreen(
                     plan = actionPlan,
                     onSavePlan = { viewModel.saveCurrentPlan() },
-                    onNavigate = { screen -> navController.navigate(screen.route) }
+                    onNavigate = { screen -> navController.navigate(screen.route) },
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
                 )
             }
 
@@ -219,7 +255,9 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                     onToggleSave = {
                         selectedScheme?.let { viewModel.toggleSaveScheme(it) }
                     },
-                    onNavigate = { screen -> navController.navigate(screen.route) }
+                    onNavigate = { screen -> navController.navigate(screen.route) },
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
                 )
             }
 
@@ -228,7 +266,16 @@ fun SakshamApp(viewModel: SakshamViewModel = viewModel(), isDarkMode: Boolean = 
                     messages = chatMessages,
                     isAiThinking = isAiThinking,
                     onSendMessage = { prompt -> viewModel.sendMessage(prompt) },
-                    onNavigate = { screen -> navController.navigate(screen.route) }
+                    onNavigate = { screen -> navController.navigate(screen.route) },
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
+                )
+            }
+
+            composable(Screen.HelpContact.route) {
+                HelpContactScreen(
+                    language = selectedLanguage,
+                    isDarkMode = isDarkMode
                 )
             }
         }

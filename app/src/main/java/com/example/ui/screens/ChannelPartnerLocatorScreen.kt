@@ -26,15 +26,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Navigation
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Button
@@ -66,10 +63,10 @@ import com.example.ui.theme.GovBlueContainer
 import com.example.ui.theme.GovBlueDark
 import com.example.ui.theme.GovBlueLight
 import com.example.ui.theme.GovBluePrimary
+import com.example.ui.theme.GovBluePrimaryDark
 import com.example.ui.theme.GrowthGreen
 import com.example.ui.theme.GrowthGreenLight
 import com.example.ui.theme.SaffronAccent
-import com.example.ui.theme.SaffronLight
 import com.example.ui.theme.SlateBorder
 import com.example.ui.theme.SlateLight
 import com.example.ui.theme.SlateMedium
@@ -81,7 +78,9 @@ val partnerFilters = listOf("All Partners", "SCA (State Agency)", "Rural Banks (
 fun ChannelPartnerLocatorScreen(
     partners: List<ChannelPartner>,
     savedPartnerIds: Set<String>,
-    onToggleSave: (ChannelPartner) -> Unit
+    onToggleSave: (ChannelPartner) -> Unit,
+    language: String = "English",
+    isDarkMode: Boolean = false
 ) {
     val context = LocalContext.current
     var selectedFilter by remember { mutableStateOf("All Partners") }
@@ -95,6 +94,11 @@ fun ChannelPartnerLocatorScreen(
         }
     }
 
+    val cardBorder = androidx.compose.foundation.BorderStroke(
+        1.dp,
+        if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder
+    )
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -107,7 +111,7 @@ fun ChannelPartnerLocatorScreen(
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SlateBorder),
+                border = cardBorder,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -122,7 +126,7 @@ fun ChannelPartnerLocatorScreen(
                             Icon(
                                 imageVector = Icons.Default.Map,
                                 contentDescription = null,
-                                tint = GovBluePrimary,
+                                tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -130,13 +134,13 @@ fun ChannelPartnerLocatorScreen(
                                 text = "Authorized Channel Partners Map",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
-                                color = GovBlueDark
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(GrowthGreenLight)
+                                .background(if (isDarkMode) Color(0xFF132A1C) else GrowthGreenLight)
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text("5 Nearby", color = GrowthGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold)
@@ -151,7 +155,7 @@ fun ChannelPartnerLocatorScreen(
                             .fillMaxWidth()
                             .height(130.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(GovBlueLight)
+                            .background(if (isDarkMode) Color(0xFF0F172A) else GovBlueLight)
                     ) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             val centerX = size.width / 2
@@ -159,17 +163,17 @@ fun ChannelPartnerLocatorScreen(
 
                             // Concentric distance circles
                             drawCircle(
-                                color = GovBluePrimary.copy(alpha = 0.15f),
+                                color = (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary).copy(alpha = 0.15f),
                                 radius = size.height * 0.45f,
                                 center = Offset(centerX, centerY)
                             )
                             drawCircle(
-                                color = GovBluePrimary.copy(alpha = 0.25f),
+                                color = (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary).copy(alpha = 0.25f),
                                 radius = size.height * 0.28f,
                                 center = Offset(centerX, centerY)
                             )
                             drawCircle(
-                                color = GovBluePrimary.copy(alpha = 0.4f),
+                                color = (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary).copy(alpha = 0.4f),
                                 radius = size.height * 0.12f,
                                 center = Offset(centerX, centerY)
                             )
@@ -193,7 +197,7 @@ fun ChannelPartnerLocatorScreen(
                                 center = Offset(centerX + 80f, centerY + 30f)
                             )
                             drawCircle(
-                                color = GovBlueDark,
+                                color = if (isDarkMode) Color(0xFF60A5FA) else GovBlueDark,
                                 radius = 6.dp.toPx(),
                                 center = Offset(centerX - 100f, centerY + 40f)
                             )
@@ -205,13 +209,30 @@ fun ChannelPartnerLocatorScreen(
                                 .align(Alignment.BottomCenter)
                                 .padding(bottom = 6.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color.White.copy(alpha = 0.9f))
+                                .background(
+                                    if (isDarkMode) Color(0xFF1E293B).copy(alpha = 0.92f) else Color.White.copy(alpha = 0.9f)
+                                )
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Text("🟢 You (Current Location)", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Text("🔵 SCA Nodal Office", fontSize = 10.sp, fontWeight = FontWeight.Medium)
-                            Text("🟠 Partner Banks", fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                            Text(
+                                "🟢 You",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "🔵 SCA Office",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "🟠 Partner Banks",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
                 }
@@ -234,7 +255,7 @@ fun ChannelPartnerLocatorScreen(
                             .background(if (isSelected) GovBluePrimary else MaterialTheme.colorScheme.surface)
                             .border(
                                 width = 1.dp,
-                                color = if (isSelected) GovBluePrimary else SlateBorder,
+                                color = if (isSelected) GovBluePrimary else if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder,
                                 shape = RoundedCornerShape(20.dp)
                             )
                             .clickable { selectedFilter = filter }
@@ -244,7 +265,7 @@ fun ChannelPartnerLocatorScreen(
                             text = filter,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) Color.White else GovBlueDark
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -257,7 +278,7 @@ fun ChannelPartnerLocatorScreen(
                 text = "Authorized Channel Partners (${filteredPartners.size})",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = GovBlueDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
             )
         }
@@ -269,6 +290,7 @@ fun ChannelPartnerLocatorScreen(
                 ChannelPartnerCard(
                     partner = partner,
                     isSaved = isSaved,
+                    isDarkMode = isDarkMode,
                     onToggleSave = { onToggleSave(partner) },
                     onCall = {
                         val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${partner.phone}"))
@@ -290,19 +312,24 @@ fun ChannelPartnerLocatorScreen(
 fun ChannelPartnerCard(
     partner: ChannelPartner,
     isSaved: Boolean,
+    isDarkMode: Boolean = false,
     onToggleSave: () -> Unit,
     onCall: () -> Unit,
     onGetDirections: () -> Unit
 ) {
+    val cardBg = if (partner.isNearest) {
+        if (isDarkMode) Color(0xFF16253B) else Color(0xFFF8FAFF)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (partner.isNearest) Color(0xFFF8FAFF) else MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = androidx.compose.foundation.BorderStroke(
             width = if (partner.isNearest) 2.dp else 1.dp,
-            color = if (partner.isNearest) GovBluePrimary else SlateBorder
+            color = if (partner.isNearest) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else (if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder)
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -320,7 +347,7 @@ fun ChannelPartnerCard(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(GrowthGreenLight)
+                                .background(if (isDarkMode) Color(0xFF132A1C) else GrowthGreenLight)
                                 .padding(horizontal = 8.dp, vertical = 3.dp)
                         ) {
                             Text(
@@ -335,12 +362,12 @@ fun ChannelPartnerCard(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(GovBlueLight)
+                                .background(if (isDarkMode) Color(0xFF1E293B) else GovBlueLight)
                                 .padding(horizontal = 8.dp, vertical = 3.dp)
                         ) {
                             Text(
                                 text = "${partner.distanceKm} km away",
-                                color = GovBluePrimary,
+                                color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -351,13 +378,17 @@ fun ChannelPartnerCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(Color.White)
-                            .border(1.dp, SlateBorder, RoundedCornerShape(6.dp))
+                            .background(if (isDarkMode) Color(0xFF1E293B) else Color.White)
+                            .border(
+                                1.dp,
+                                if (isDarkMode) MaterialTheme.colorScheme.outlineVariant else SlateBorder,
+                                RoundedCornerShape(6.dp)
+                            )
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = partner.type,
-                            color = SlateMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -371,7 +402,7 @@ fun ChannelPartnerCard(
                     Icon(
                         imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                         contentDescription = "Save Partner",
-                        tint = if (isSaved) GovBluePrimary else SlateLight
+                        tint = if (isSaved) (if (isDarkMode) GovBluePrimaryDark else GovBluePrimary) else SlateLight
                     )
                 }
             }
@@ -383,7 +414,7 @@ fun ChannelPartnerCard(
                 text = partner.name,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = GovBlueDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 lineHeight = 20.sp
             )
 
@@ -395,7 +426,7 @@ fun ChannelPartnerCard(
                 Icon(
                     imageVector = Icons.Default.Shield,
                     contentDescription = null,
-                    tint = GovBluePrimary,
+                    tint = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
@@ -403,7 +434,7 @@ fun ChannelPartnerCard(
                     text = partner.categoryBadge,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = GovBluePrimary
+                    color = if (isDarkMode) GovBluePrimaryDark else GovBluePrimary
                 )
             }
 
@@ -439,14 +470,19 @@ fun ChannelPartnerCard(
                 Text(
                     text = partner.timing,
                     fontSize = 11.sp,
-                    color = SlateMedium
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
             // Available Loans Chips
-            Text(text = "Available Schemes at this branch:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SlateMedium)
+            Text(
+                text = "Available Schemes at this branch:",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(modifier = Modifier.height(4.dp))
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -457,13 +493,15 @@ fun ChannelPartnerCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(GovBlueLight.copy(alpha = 0.7f))
+                            .background(
+                                if (isDarkMode) Color(0xFF1E293B) else GovBlueLight.copy(alpha = 0.7f)
+                            )
                             .padding(horizontal = 7.dp, vertical = 3.dp)
                     ) {
                         Text(
                             text = category,
                             fontSize = 10.sp,
-                            color = GovBlueDark,
+                            color = if (isDarkMode) GovBluePrimaryDark else GovBlueDark,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -487,7 +525,12 @@ fun ChannelPartnerCard(
                 ) {
                     Icon(imageVector = Icons.Default.Call, contentDescription = null, tint = GrowthGreen, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Call Branch", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = GovBlueDark)
+                    Text(
+                        "Call Branch",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Button(
